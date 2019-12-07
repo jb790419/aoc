@@ -42,16 +42,13 @@ class Intcode:
         elif instr == 1:
             self.intc[self.intc[pos + 3]] = self.parval(1) + self.parval(2)
             self.pos = pos + 4
-            return self.process(self.pos)
         elif instr == 2:
             self.intc[self.intc[pos + 3]] = self.parval(1) * self.parval(2)
             self.pos = pos + 4
-            return self.process(self.pos)
         elif instr == 3:
             self.intc[self.intc[pos + 1]] = self.phase if self.count_inputs == 0 else self.input
             self.count_inputs = self.count_inputs + 1
             self.pos = pos + 2
-            return self.process(self.pos)
         elif instr == 4:
             self.output = self.parval(1) 
             self.pos = pos + 2
@@ -59,36 +56,34 @@ class Intcode:
                 self.nextamp.input = self.output
                 self.nextamp.process(self.nextamp.pos)
             except AttributeError:
-                return self.process(self.pos)
+                pass
         elif instr == 5:
             if self.parval(1) != 0:
                 self.pos = self.parval(2)
             else:
                 self.pos = pos + 3
-            return self.process(self.pos)
 
         elif instr == 6:
             if self.parval(1) == 0:
                 self.pos = self.parval(2)
             else:
                 self.pos = pos + 3
-            return self.process(self.pos)
         elif instr == 7:
             if self.parval(1) < self.parval(2):
                 self.intc[self.intc[pos + 3]] = 1
             else:
                 self.intc[self.intc[pos + 3]] = 0
             self.pos = pos + 4
-            return self.process(self.pos)
         elif instr == 8:
             if self.parval(1) == self.parval(2):
                 self.intc[self.intc[pos + 3]] = 1
             else:
                 self.intc[self.intc[pos + 3]] = 0
             self.pos = pos + 4
-            return self.process(self.pos)
         else:
             raise KeyError(f'unknown instruction {instr}')
+
+        return self.process(self.pos)
 
 def serial(amp):
     for i in range(5):
