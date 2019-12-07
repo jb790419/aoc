@@ -39,16 +39,20 @@ class Intcode:
 
         if instr == 99:
             return self.intc
+
         elif instr == 1:
             self.intc[self.intc[pos + 3]] = self.parval(1) + self.parval(2)
             self.pos = pos + 4
+
         elif instr == 2:
             self.intc[self.intc[pos + 3]] = self.parval(1) * self.parval(2)
             self.pos = pos + 4
+
         elif instr == 3:
             self.intc[self.intc[pos + 1]] = self.phase if self.count_inputs == 0 else self.input
             self.count_inputs = self.count_inputs + 1
             self.pos = pos + 2
+
         elif instr == 4:
             self.output = self.parval(1) 
             self.pos = pos + 2
@@ -57,28 +61,19 @@ class Intcode:
                 self.nextamp.process(self.nextamp.pos)
             except AttributeError:
                 pass
+
         elif instr == 5:
-            if self.parval(1) != 0:
-                self.pos = self.parval(2)
-            else:
-                self.pos = pos + 3
+            self.pos = self.parval(2) if self.parval(1) != 0 else pos + 3
 
         elif instr == 6:
-            if self.parval(1) == 0:
-                self.pos = self.parval(2)
-            else:
-                self.pos = pos + 3
+            self.pos = self.parval(2) if self.parval(1) == 0 else pos + 3
+
         elif instr == 7:
-            if self.parval(1) < self.parval(2):
-                self.intc[self.intc[pos + 3]] = 1
-            else:
-                self.intc[self.intc[pos + 3]] = 0
+            self.intc[self.intc[pos + 3]] = 1 if self.parval(1) < self.parval(2) else 0
             self.pos = pos + 4
+
         elif instr == 8:
-            if self.parval(1) == self.parval(2):
-                self.intc[self.intc[pos + 3]] = 1
-            else:
-                self.intc[self.intc[pos + 3]] = 0
+            self.intc[self.intc[pos + 3]] = 1 if self.parval(1) == self.parval(2) else 0
             self.pos = pos + 4
         else:
             raise KeyError(f'unknown instruction {instr}')
@@ -86,13 +81,13 @@ class Intcode:
         return self.process(self.pos)
 
 def serial(amp):
-    for i in range(5):
-        if i != 4:
+    for i in range(len(amp)):
+        if i < len(amp) - 1:
             amp[i].nextamp = amp[i+1]
 
 def feedback(amp):
-    for i in range(5):
-        if i == 4:
+    for i in range(len(amp)):
+        if i == len(amp) - 1:
             amp[i].nextamp = amp[0]
         else:
             amp[i].nextamp = amp[i+1]
