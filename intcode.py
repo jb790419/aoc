@@ -1,128 +1,112 @@
 import unittest
 import itertools
-import copy
 
 class Intcode:
 
-    intc = []
-
-    def __init__(self, intc, phase = None, inp = None):
+    def __init__(self, intc, phase = None):
         self.pos = 0
-        self.intc = copy.copy(intc)
-        self.input = inp
+        self.intc = {i:intc[i] for i in range(len(intc))}
+        self.input = None
         self.phase = phase
         self.count_inputs = 0
         self.base = 0 # base for relative position mode
         self.outputlist = []
-        self.memory = {}
-
-    def findmode(self, instr, index):
-        if index == 1:
-            offset = -3
-        elif index == 2:
-            offset = -4
-        elif index == 3:
-            offset = -5
-        else:
-            raise KeyError(f'not supported parameter index {index}!')
-        return f'{instr:05}'[offset]
 
     def parval(self, idx, return_value = True):
-        instr = self.intc[self.pos]
-        mode = self.findmode(instr, idx)
-        if mode == '0':
-            '''positional mode'''
-            position = self.intc[self.pos + idx]
-        elif mode == '1':
-            '''immediate mode'''
-            position = self.pos + idx
-        elif mode == '2':
-            '''relative mode'''
-            position = self.base + self.intc[self.pos + idx]
-        else:
-            raise KeyError(f'not supported mode {mode}!')
-        return self.readintc(position) if return_value else position
-
-    def readintc(self, address):
-        try:
-            return self.intc[address]
-        except IndexError:
+        '''
+        21101 instruction code
+           01 opcode
+          1   mode of first parameter
+         1    mode of second parameter
+        2     mode of third parameter 
+        '''
+        mode = f'{self.intc[self.pos]:05}'[-(idx + 2)]
+        modes = {
+                '0': self.intc[self.pos + idx], # positional mode
+                '1': self.pos + idx, # immediate mode
+                '2': self.base + self.intc[self.pos + idx] # relative mode
+                }
+        address = modes.get(mode)
+        if return_value:
             try:
-                return self.memory[address]
+                return self.intc[address]
             except KeyError:
                 return 0
+        else:
+            return address
 
-    def modintc(self, position, value):
+    def add(self):
+        value = self.parval(1) + self.parval(2)
+        address = self.parval(3, False)
+        self.intc[address] = value
+        self.pos += 4
+
+    def multiply(self):
+        value = self.parval(1) * self.parval(2)
+        address = self.parval(3, False)
+        self.intc[address] = value
+        self.pos += 4
+
+    def take_input(self):
+        address = self.parval(1, False)
+        if self.count_inputs == 0:
+            value = self.phase
+        else:
+            value = self.input
+        self.count_inputs += 1
+        self.intc[address] = value
+        self.pos += 2
+
+    def produce_output(self):
+        self.output = self.parval(1)
+        self.outputlist.append(self.output)
+        self.pos += 2
         try:
-            self.intc[position] = value
-        except IndexError:
-            self.memory[position] = value
+            self.nextamp.input = self.output
+            self.nextamp.process()
+        except AttributeError:
+            pass
 
-    def process(self, address = 0):
-        stack = [address]
-        while stack:
-            pos = stack.pop(0)
-            instr = int(str(f'{self.intc[pos]:05}')[-2:])
+    def jump_if_true(self):
+        self.pos = self.parval(2) if self.parval(1) != 0 else self.pos + 3
 
-            if instr == 99:
-                return self.intc
+    def jump_if_false(self):
+        self.pos = self.parval(2) if self.parval(1) == 0 else self.pos + 3
 
-            elif instr == 1:
-                address = self.parval(3, False)
-                value = self.parval(1) + self.parval(2)
-                self.modintc(address, value)
-                self.pos += 4
+    def less_than(self):
+        value = 1 if self.parval(1) < self.parval(2) else 0
+        address = self.parval(3, False)
+        self.intc[address] = value
+        self.pos += 4
 
-            elif instr == 2:
-                address = self.parval(3, False)
-                value = self.parval(1) * self.parval(2)
-                self.modintc(address, value)
-                self.pos += 4
+    def equals(self):
+        value = 1 if self.parval(1) == self.parval(2) else 0
+        address = self.parval(3, False)
+        self.intc[address] = value
+        self.pos += 4
 
-            elif instr == 3:
-                address = self.parval(1, False)
-                if self.count_inputs == 0:
-                    value = self.phase
-                else:
-                    value = self.input
-                self.count_inputs += 1
-                self.modintc(address, value)
-                self.pos += 2
+    def offset_base(self):
+        self.base = self.base + self.parval(1)
+        self.pos += 2
 
-            elif instr == 4:
-                self.output = self.parval(1)
-                self.outputlist.append(self.output)
-                self.pos += 2
-                try:
-                    self.nextamp.input = self.output
-                    self.nextamp.process(self.nextamp.pos)
-                except AttributeError:
-                    pass
-
-            elif instr == 5:
-                self.pos = self.parval(2) if self.parval(1) != 0 else pos + 3
-
-            elif instr == 6:
-                self.pos = self.parval(2) if self.parval(1) == 0 else pos + 3
-
-            elif instr == 7:
-                address = self.parval(3, False)
-                value = 1 if self.parval(1) < self.parval(2) else 0
-                self.modintc(address, value)
-                self.pos += 4
-
-            elif instr == 8:
-                address = self.parval(3, False)
-                value = 1 if self.parval(1) == self.parval(2) else 0
-                self.modintc(address, value)
-                self.pos += 4
-
-            elif instr == 9:
-                self.base = self.base + self.parval(1)
-                self.pos += 2
-            else:
-                raise KeyError(f'Unknown instruction {instr}.')
-            stack.append(self.pos)
+    def process(self):
+        instructions = {
+                1: self.add,
+                2: self.multiply,
+                3: self.take_input,
+                4: self.produce_output,
+                5: self.jump_if_true,
+                6: self.jump_if_false,
+                7: self.less_than,
+                8: self.equals,
+                9: self.offset_base,
+                }
+        opcode = int(str(f'{self.intc[self.pos]:05}')[-2:])
+        while opcode < 99:
+            processor = instructions.get(opcode)
+            processor()
+            opcode = int(str(f'{self.intc[self.pos]:05}')[-2:])
+        return self.intc
 
 def serial(amp):
     for i in range(len(amp)):
@@ -191,12 +175,12 @@ class TestIntcode(unittest.TestCase):
     def test_input_output(self):
         vstup = [1,0,0,0,99]
         comp = Intcode(vstup)
-        self.assertListEqual(comp.intc, [1,0,0,0,99])
+        self.assertListEqual(list(comp.intc.values()), [1,0,0,0,99])
         intc = comp.process()
-        self.assertListEqual(intc, [2,0,0,0,99])
+        self.assertListEqual(list(intc.values()), [2,0,0,0,99])
         vstup = [1,1,1,4,99,5,6,0,99]
         comp = Intcode(vstup)
-        self.assertListEqual(comp.process(), [30,1,1,4,2,5,6,0,99])
+        self.assertListEqual(list(comp.process().values()), [30,1,1,4,2,5,6,0,99])
 
     def test_3(self):
         vstup = [3,0,4,0,99]
@@ -259,7 +243,7 @@ class TestIntcode(unittest.TestCase):
         comp = Intcode(vstup, 12)
         comp.base = 1
         intc = comp.process()
-        self.assertListEqual(intc, [203, 12, 99])
+        self.assertListEqual(list(intc.values()), [203, 12, 99])
 
 if __name__ == '__main__':
     vstup = [3,8,1001,8,10,8,105,1,0,0,21,34,59,68,85,102,183,264,345,426,99999,3,9,101,3,9,9,102,3,9,9,4,9,99,3,9,1002,9,4,9,1001,9,2,9,1002,9,2,9,101,5,9,9,102,5,9,9,4,9,99,3,9,1001,9,4,9,4,9,99,3,9,101,3,9,9,1002,9,2,9,1001,9,5,9,4,9,99,3,9,1002,9,3,9,1001,9,5,9,102,3,9,9,4,9,99,3,9,1001,9,1,9,4,9,3,9,1001,9,2,9,4,9,3,9,1002,9,2,9,4,9,3,9,102,2,9,9,4,9,3,9,1001,9,2,9,4,9,3,9,101,2,9,9,4,9,3,9,102,2,9,9,4,9,3,9,102,2,9,9,4,9,3,9,101,1,9,9,4,9,3,9,101,1,9,9,4,9,99,3,9,1002,9,2,9,4,9,3,9,1002,9,2,9,4,9,3,9,1002,9,2,9,4,9,3,9,1001,9,2,9,4,9,3,9,101,1,9,9,4,9,3,9,1001,9,1,9,4,9,3,9,1002,9,2,9,4,9,3,9,101,2,9,9,4,9,3,9,101,1,9,9,4,9,3,9,101,2,9,9,4,9,99,3,9,1001,9,1,9,4,9,3,9,101,1,9,9,4,9,3,9,102,2,9,9,4,9,3,9,1002,9,2,9,4,9,3,9,1002,9,2,9,4,9,3,9,101,2,9,9,4,9,3,9,1001,9,1,9,4,9,3,9,1001,9,1,9,4,9,3,9,102,2,9,9,4,9,3,9,1001,9,1,9,4,9,99,3,9,1002,9,2,9,4,9,3,9,101,1,9,9,4,9,3,9,1001,9,2,9,4,9,3,9,102,2,9,9,4,9,3,9,1002,9,2,9,4,9,3,9,102,2,9,9,4,9,3,9,1001,9,1,9,4,9,3,9,1002,9,2,9,4,9,3,9,1001,9,2,9,4,9,3,9,101,2,9,9,4,9,99,3,9,1001,9,1,9,4,9,3,9,1002,9,2,9,4,9,3,9,101,2,9,9,4,9,3,9,101,1,9,9,4,9,3,9,1002,9,2,9,4,9,3,9,101,1,9,9,4,9,3,9,102,2,9,9,4,9,3,9,101,1,9,9,4,9,3,9,102,2,9,9,4,9,3,9,101,2,9,9,4,9,99]
