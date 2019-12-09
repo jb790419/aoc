@@ -62,8 +62,6 @@ class Intcode:
         stack = [address]
         while stack:
             pos = stack.pop(0)
-
-            self.pos = pos
             instr = int(str(f'{self.intc[pos]:05}')[-2:])
 
             if instr == 99:
@@ -73,13 +71,13 @@ class Intcode:
                 address = self.parval(3, False)
                 value = self.parval(1) + self.parval(2)
                 self.modintc(address, value)
-                self.pos = pos + 4
+                self.pos += 4
 
             elif instr == 2:
                 address = self.parval(3, False)
                 value = self.parval(1) * self.parval(2)
                 self.modintc(address, value)
-                self.pos = pos + 4
+                self.pos += 4
 
             elif instr == 3:
                 address = self.parval(1, False)
@@ -87,14 +85,14 @@ class Intcode:
                     value = self.phase
                 else:
                     value = self.input
-                self.count_inputs = self.count_inputs + 1
+                self.count_inputs += 1
                 self.modintc(address, value)
-                self.pos = pos + 2
+                self.pos += 2
 
             elif instr == 4:
                 self.output = self.parval(1)
                 self.outputlist.append(self.output)
-                self.pos = pos + 2
+                self.pos += 2
                 try:
                     self.nextamp.input = self.output
                     self.nextamp.process(self.nextamp.pos)
@@ -111,17 +109,17 @@ class Intcode:
                 address = self.parval(3, False)
                 value = 1 if self.parval(1) < self.parval(2) else 0
                 self.modintc(address, value)
-                self.pos = pos + 4
+                self.pos += 4
 
             elif instr == 8:
                 address = self.parval(3, False)
                 value = 1 if self.parval(1) == self.parval(2) else 0
                 self.modintc(address, value)
-                self.pos = pos + 4
+                self.pos += 4
 
             elif instr == 9:
                 self.base = self.base + self.parval(1)
-                self.pos = pos + 2
+                self.pos += 2
             else:
                 raise KeyError(f'Unknown instruction {instr}.')
             stack.append(self.pos)
@@ -274,4 +272,4 @@ if __name__ == '__main__':
 
     comp = Intcode(vstup, 2)
     comp.process()
-    print(f'day9 part2: {comp.outputlist}')
+    print(f'day9 part2: {comp.output}')
