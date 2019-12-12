@@ -11,6 +11,18 @@ class Intcode:
         self.count_inputs = 0
         self.base = 0 # base for relative position mode
         self.outputlist = []
+        self.output_number = 0
+        self.max_outputs = None
+        self.robot = None
+
+    def talk_to_robot(self):
+        if self.robot is None:
+            pass
+        else:
+            color, direction = self.outputlist[-2:]
+            self.robot.paint(color)
+            self.robot.turn_and_move(direction)
+            self.input = self.robot.getcolor()
 
     def parval(self, idx, return_value = True):
         '''
@@ -60,7 +72,11 @@ class Intcode:
     def produce_output(self):
         self.output = self.parval(1)
         self.outputlist.append(self.output)
+        self.output_number +=1
         self.pos += 2
+        if self.max_outputs is not None and self.output_number == self.max_outputs:
+            self.output_number = 0
+            self.talk_to_robot()
         try:
             self.nextamp.input = self.output
             self.nextamp.process()
