@@ -12,6 +12,12 @@ class Hull:
         self.map = {} # dvojice (x, y): barva pocatek je v 0, 0
         self.computer.process()
 
+    def interpret(self, outputs):
+        color, direction = outputs
+        self.paint(color)
+        self.turn_and_move(direction)
+        return self.getcolor()
+
     def paint(self, color):
         
         self.map[(self.x, self.y)] = color

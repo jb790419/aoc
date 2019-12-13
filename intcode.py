@@ -19,10 +19,7 @@ class Intcode:
         if self.robot is None:
             pass
         else:
-            color, direction = self.outputlist[-2:]
-            self.robot.paint(color)
-            self.robot.turn_and_move(direction)
-            self.input = self.robot.getcolor()
+            self.input = self.robot.interpret(self.outputlist[-(self.max_outputs):])
 
     def parval(self, idx, return_value = True):
         '''
@@ -65,6 +62,10 @@ class Intcode:
             value = self.phase
         else:
             value = self.input
+
+        if value is None:
+            raise ValueError('No input!')
+
         self.count_inputs += 1
         self.intc[address] = value
         self.pos += 2
