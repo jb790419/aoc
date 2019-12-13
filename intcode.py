@@ -64,7 +64,7 @@ class Intcode:
             value = self.input
 
         if value is None:
-            raise ValueError('No input!')
+            value = self.robot.provide_input()
 
         self.count_inputs += 1
         self.intc[address] = value
