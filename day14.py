@@ -10,6 +10,19 @@ def parse(input_string):
         parsed.append(react)
     return parsed
 
+def ore_for_fuel(parsed):
+    for r in parsed:
+        for ((outqty, outsubst), inputs) in r.items():
+            if outsubst == 'FUEL':
+                # pro kazdy input budeme nahrazovat a nacitat potrebne suroviny az dojdeme k ORE
+                for inqty, insubst in inputs:
+                    final = False
+                    while not final:
+                        
+
+                continue
+    
+
 def ore_for(qty, subst, parsed):
     stack = []
     stack.append((qty, subst))
@@ -20,19 +33,17 @@ def ore_for(qty, subst, parsed):
         for r in parsed:
             for ((outqty, outsubst), inputs) in r.items():
                 if outsubst == subst:
-                    '''porovnat qty 7A vs outqty 10A'''
-                    podil, zbytek = divmod(qty, outqty)
-                    if zbytek > 0: podil += 1
                     for inqty, insubst in inputs:
-                        '''pokud subst je ore, ...'''
-                        if insubst == 'ORE':
-                            '''spocitat kolik ore a pricist k celku'''
+                        if insubst != 'ORE':
+                            podil, zbytek = divmod(qty, outqty)
+                            if zbytek > 0: podil+=1
+                            print(inputs)
+                            stack.append((inqty*podil, insubst))
+                        else:
                             try:
                                 final_subst[subst] += qty 
                             except KeyError:
                                 final_subst[subst] = qty
-                        else:
-                            stack.append((inqty*podil, insubst))
                     continue
     print(final_subst)
     orecount = 0
