@@ -1,99 +1,88 @@
 import unittest
+from collections import defaultdict
+from math import ceil
 import input_day14
 
-def parse(input_string):
-    parsed = []
-    for (inputs, output) in [[line.split(' => ')[0].split(', '), line.split(' => ')[1]] for line in input_string.splitlines()]:
-        react = {}
-        qty, subst = output.split(' ')
-        react[(int(qty), subst)] = [(int(item.split(' ')[0]), item.split(' ')[1]) for item in inputs]
-        parsed.append(react)
-    return parsed
+def parse(data):
+    def parse_chem(s):
+        units, name = s.split(' ')
+        return int(units), name
 
-def ore_for_fuel(parsed):
-    for r in parsed:
-        for ((outqty, outsubst), inputs) in r.items():
-            if outsubst == 'FUEL':
-                # pro kazdy input budeme nahrazovat a nacitat potrebne suroviny az dojdeme k ORE
-                for inqty, insubst in inputs:
-                    final = False
-                    while not final:
-                        
+    reactions = {}
+    for reaction in data.split('\n'):
+        input, output = reaction.split(' => ')
+        inputs = []
+        for chem in input.split(', '):
+            inputs.append(parse_chem(chem))
+        out_units, out_chem = parse_chem(output)
+        reactions[out_chem] = (out_units, inputs)
+    return reactions
 
-                continue
-    
+def minimum_ore(reactions, chem='FUEL', units=1, waste=None):
+    if waste is None:
+        waste = defaultdict(int)
 
-def ore_for(qty, subst, parsed):
-    stack = []
-    stack.append((qty, subst))
-    final_subst = {}
-    while stack:
-        (qty, subst) = stack.pop(0)
-        print(qty, subst)
-        for r in parsed:
-            for ((outqty, outsubst), inputs) in r.items():
-                if outsubst == subst:
-                    for inqty, insubst in inputs:
-                        if insubst != 'ORE':
-                            podil, zbytek = divmod(qty, outqty)
-                            if zbytek > 0: podil+=1
-                            print(inputs)
-                            stack.append((inqty*podil, insubst))
-                        else:
-                            try:
-                                final_subst[subst] += qty 
-                            except KeyError:
-                                final_subst[subst] = qty
-                    continue
-    print(final_subst)
-    orecount = 0
-    for subst, qty in final_subst.items():
-        for r in parsed:
-            for ((outqty, outsubst), inputs) in r.items():
-                if outsubst == subst:
-                    podil, zbytek = divmod(qty, outqty)
-                    if zbytek > 0: podil += 1
-                    inqty, insubst = inputs[0]
-                    orecount += podil * inqty
-                    #print(f'na vyrobu {qty} {subst} potrebujeme {podil*inqty} {insubst}')
-                    continue
-    return orecount
+    if chem == 'ORE':
+        return units
 
+    # Re-use waste chemicals.
+    reuse = min(units, waste[chem])
+    units -= reuse
+    waste[chem] -= reuse
 
+    # Work out how many reactions we need to perform.
+    produced, inputs = reactions[chem]
+    n = ceil(units / produced)
 
+    # Determine the minimum ore required to produce each input.
+    ore = 0
+    for required, input in inputs:
+        ore += minimum_ore(reactions, input, n * required, waste)
 
-def part1(input_string):
-    parsed = parse(input_string)
-    return ore_for(1, 'FUEL', parsed)
+    # Store waste so it can be re-used
+    waste[chem] += n * produced - units
+
+    return ore
+
+def maximum_fuel(reactions):
+    target = 1000000000000
+    lower = None
+    upper = 1
+
+    # Find upper bound.
+    while minimum_ore(reactions, units=upper) < target:
+        lower = upper
+        upper *= 2
+
+    # Binary search to find maximum fuel produced.
+    while lower + 1 < upper:
+        mid = (lower + upper) // 2
+        ore = minimum_ore(reactions, units=mid)
+        if ore > target:
+            upper = mid
+        elif ore < target:
+            lower = mid
+
+    return lower
+
 
 class TestReactions(unittest.TestCase):
 
-    def test_parse(self):
-        '''
-        jak by mela vypadat jedna veta?
-        [{(1, FUEL):[(7, A), (1, B)]},...]
-        '''
-        parsed = [{(2, 'A'): [(9, 'ORE')]},
-                {(3, 'B'): [(8, 'ORE')]},
-                {(5, 'C'): [(7, 'ORE')]},
-                {(1, 'AB'): [(3, 'A'), (4, 'B')]},
-                {(1, 'BC'): [(5, 'B'),(7, 'C')]},
-                {(1, 'CA'): [(4, 'C'), (1, 'A')]},
-                {(1, 'FUEL'): [(2, 'AB'), (3, 'BC'), (4, 'CA')]}]
-
-        self.assertEqual(parse(input_day14.test2), parsed)
-        
     def test_part1_1(self):
-        self.assertEqual(part1(input_day14.test1), 31)
+        self.assertEqual(minimum_ore(parse(input_day14.test1)), 31)
 
     def test_part1_2(self):
-        self.assertEqual(part1(input_day14.test2), 165)
+        self.assertEqual(minimum_ore(parse(input_day14.test2)), 165)
 
     def test_part1_3(self):
-        self.assertEqual(part1(input_day14.test3), 13312)
+        self.assertEqual(minimum_ore(parse(input_day14.test3)), 13312)
 
     def test_part1_4(self):
-        self.assertEqual(part1(input_day14.test4), 180697)
+        self.assertEqual(minimum_ore(parse(input_day14.test4)), 180697)
 
     def test_part1_5(self):
-        self.assertEqual(part1(input_day14.test5), 2210736)
+        self.assertEqual(minimum_ore(parse(input_day14.test5)), 2210736)
+
+if __name__ == '__main__':
+    print(minimum_ore(parse(input_day14.input_data)))
+    print(maximum_fuel(parse(input_day14.input_data)))
