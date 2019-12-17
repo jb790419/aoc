@@ -76,23 +76,17 @@ class Droid:
         west = self.map[(self.x+1, self.y)]
         east = self.map[(self.x-1, self.y)]
 
-        if north == 0:
-            return random.randint(2,4)
-        if south == 0: return random.randint(1,4)
-        if east == 0: return random.randint(1,3)
-        if west == 0: return random.randint(1,4)
+        dirs = {
+                1: north,
+                2: south,
+                3: west,
+                4: east
+                }
 
-        if north == 3: return 1
-        elif south == 3: return 2
-        elif west == 3: return 3
-        elif east == 3: return 4
-        elif north == 1 and south == 1: return random.randint(1,2) 
-        elif north == 1: return 1
-        elif south == 1: return 2
-        elif east == 1 and west == 1: return random.randint(3,4)
-        elif west == 1: return 3
-        elif east == 1: return 4
-        else: return random.randint(1,4)
+        prefer = random.randint(1,4)
+        while dirs.get(prefer) not in (1,3):
+            prefer = random.randint(1,4)
+        return prefer
 
     def provide_input(self):
         '''
