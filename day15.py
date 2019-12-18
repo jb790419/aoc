@@ -83,6 +83,8 @@ class Droid:
                 4: east
                 }
 
+        back = {1:2, 2:1, 3:4, 4:3} 
+
         prefer = random.randint(1,4)
         while dirs.get(prefer) not in (1,3):
             prefer = random.randint(1,4)
