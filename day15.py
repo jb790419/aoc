@@ -22,6 +22,7 @@ class Droid:
         self.new_x = 0
         self.new_y = 0
         self.stepcount = 0
+        self.at_start = 0
         self.strings = {
                 0: '#',
                 1: '.',
@@ -90,6 +91,8 @@ class Droid:
             self.x = self.new_x
             self.y = self.new_y
             self.path.append(self.input)
+        if self.x == 0 and self.y == 0:
+            self.at_start += 1
 
     def where(self):
         '''
@@ -99,16 +102,15 @@ class Droid:
         jdu dopredu (n) pokud to jde a kontroluju zed na levo
         pokud na levo neni zed, jdu na levo
         '''
+        if self.at_start > 2: return None
         north = self.map[(self.x, self.y+1)]
         south = self.map[(self.x, self.y-1)]
         west = self.map[(self.x+1, self.y)]
         east = self.map[(self.x-1, self.y)]
-        if self.sc == 2: return None
 
         if self.sc == 0:
             #naposledy jsme sli posledni element path
             last = self.path[-1]
-            self.stepcount += 1
         else:
             #naposledy jsem sli self.input
             last = self.input
@@ -127,12 +129,14 @@ class Droid:
         if dirs.get(self.left(last)) == 3:
             return self.left(last)
         if dirs.get(self.left(last)) == 0 and dirs.get(self.head(last)) == 0 and dirs.get(self.right(last)) == 0:
-            self.stepcount -= 1
             return self.back(last)
         if dirs.get(self.left(last)) == 0 and dirs.get(self.head(last)) == 0:
             return self.right(last)
         if dirs.get(self.left(last)) == 0:
             return self.head(last)
+
+        if dirs.get(self.left(last)) == 1:
+            return self.left(last)
 
     def provide_input(self):
         '''
