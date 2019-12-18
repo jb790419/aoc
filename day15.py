@@ -52,27 +52,39 @@ class Droid:
         except ValueError:
             pass
 
-    def left(self, last):
+    @property
+    def last(self):
+        if self.sc == 0:
+            #naposledy jsme sli posledni element path
+            return self.path[-1]
+        else:
+            #naposledy jsem sli self.input
+            return self.input
 
-        if last == 1: return 3
-        if last == 2: return 4
-        if last == 3: return 2
-        if last == 4: return 1
+    @property
+    def left(self):
+        if self.last == 1: return 3
+        if self.last == 2: return 4
+        if self.last == 3: return 2
+        if self.last == 4: return 1
 
-    def right(self, last):
-        if last == 1: return 4 
-        if last == 2: return 3
-        if last == 3: return 1
-        if last == 4: return 2
+    @property
+    def right(self):
+        if self.last == 1: return 4 
+        if self.last == 2: return 3
+        if self.last == 3: return 1
+        if self.last == 4: return 2
 
-    def head(self, last):
-        return last
+    @property
+    def head(self):
+        return self.last
 
-    def back(self, last):
-        if last == 1: return 2 
-        if last == 2: return 1
-        if last == 3: return 4
-        if last == 4: return 3
+    @property
+    def back(self):
+        if self.last == 1: return 2 
+        if self.last == 2: return 1
+        if self.last == 3: return 4
+        if self.last == 4: return 3
 
     def interpret(self, outputs):
         '''
@@ -103,40 +115,29 @@ class Droid:
         pokud na levo neni zed, jdu na levo
         '''
         if self.at_start > 2: return None
-        north = self.map[(self.x, self.y+1)]
-        south = self.map[(self.x, self.y-1)]
-        west = self.map[(self.x+1, self.y)]
-        east = self.map[(self.x-1, self.y)]
-
-        if self.sc == 0:
-            #naposledy jsme sli posledni element path
-            last = self.path[-1]
-        else:
-            #naposledy jsem sli self.input
-            last = self.input
 
         dirs = {
-                1: north,
-                2: south,
-                3: west,
-                4: east
+                1: self.map[(self.x, self.y+1)],
+                2: self.map[(self.x, self.y-1)],
+                3: self.map[(self.x+1, self.y)],
+                4: self.map[(self.x-1, self.y)]
                 }
 
         back = {1:2, 2:1, 3:4, 4:3}
 
-        print(f'last {last}')
+        print(f'last {self.last}')
 
-        if dirs.get(self.left(last)) == 3:
-            return self.left(last)
-        if dirs.get(self.left(last)) == 0 and dirs.get(self.head(last)) == 0 and dirs.get(self.right(last)) == 0:
-            return self.back(last)
-        if dirs.get(self.left(last)) == 0 and dirs.get(self.head(last)) == 0:
-            return self.right(last)
-        if dirs.get(self.left(last)) == 0:
-            return self.head(last)
+        if dirs.get(self.left) == 3:
+            return self.left
+        if dirs.get(self.left) == 0 and dirs.get(self.head) == 0 and dirs.get(self.right) == 0:
+            return self.back
+        if dirs.get(self.left) == 0 and dirs.get(self.head) == 0:
+            return self.right
+        if dirs.get(self.left) == 0:
+            return self.head
 
-        if dirs.get(self.left(last)) == 1:
-            return self.left(last)
+        if dirs.get(self.left) == 1:
+            return self.left
 
     def provide_input(self):
         '''
