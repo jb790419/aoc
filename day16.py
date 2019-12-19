@@ -1,5 +1,6 @@
 import unittest
 from unittest import skip
+import math
 '''
 --- Day 16: Flawed Frequency Transmission ---
 You're 3/4ths of the way through the gas giants. Not only do roundtrip signals
@@ -49,22 +50,18 @@ def signal(instr, phase=0):
     while pn <= phase:
         pn += 1
         inpl = inp.pop(0)
-        for p in range(1, phase + 1):
-            pl = []
-            for it in range(1, len(inpl) + 1):
-                current_phase = [initial_phase[i//it] for i in range(len(initial_phase)*it)]
-                c = current_phase*(len(inpl)//len(initial_phase))
-                d = c[1:]
-                d.append(c[0])
-                print(d)
-                f = int(str(sum([x*y for x, y in zip(inpl, d)]))[-1])
-                pl.append(f)
-            inp.append(pl)
-    return pl
-
-
-
-    return None
+        pl = []
+        for it in range(1, len(inpl) + 1):
+            current_phase = [initial_phase[i//it] for i in range(len(initial_phase)*it)]
+            #c = current_phase*(len(inpl)//len(initial_phase))
+            c = current_phase*(math.ceil(len(inpl)/4))
+            d = c[1:]
+            #d.append(c[0])
+            #print(d[0:len(inpl)])
+            f = int(str(sum([x*y for x, y in zip(inpl, d)]))[-1])
+            pl.append(f)
+        inp.append(pl)
+    return pl[:8]
 
 class TestSignal(unittest.TestCase):
     def test_phase1(self):
@@ -76,17 +73,14 @@ class TestSignal(unittest.TestCase):
     def test_phase4(self):
         self.assertEqual(signal('12345678', phase=4), [0,1,0,2,9,4,9,8])
 
-    @skip('')
     def test_large1(self):
-        self.assertEqual(signal('80871224585914546619083218645595', phase=100), '24176176')
+        self.assertEqual(signal('80871224585914546619083218645595', phase=100), [2,4,1,7,6,1,7,6])
 
-    @skip('')
     def test_large2(self):
-        self.assertEqual(signal('19617804207202209144916044189917', phase=100), '73745418')
+        self.assertEqual(signal('19617804207202209144916044189917', phase=100), [7,3,7,4,5,4,1,8])
 
-    @skip('')
     def test_large3(self):
-        self.assertEqual(signal('69317163492948606335995924319873', phase=100), '52432133')
+        self.assertEqual(signal('69317163492948606335995924319873', phase=100), [5,2,4,3,2,1,3,3])
 
 
 if __name__ == '__main__':
