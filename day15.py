@@ -128,8 +128,6 @@ class Droid:
 
         back = {1:2, 2:1, 3:4, 4:3}
 
-        print(f'last {self.last}')
-
         if dirs.get(self.left) == 3:
             return self.left
         if dirs.get(self.left) == 0 and dirs.get(self.head) == 0 and dirs.get(self.right) == 0:
@@ -173,8 +171,8 @@ class Droid:
         self.visited[src] = True
         q = [(src, 0)]
         while q:
-            print(self.showmap())
             (x, y), distance = q.pop(0)
+            print(self.showmap())
             if self.map[(x, y)] == 2:
                 return distance
             # enqueue adjacent cells if is valid, has path and not visited yet
@@ -187,6 +185,47 @@ class Droid:
                     self.visited[cell] = True
                     q.append((cell, distance + 1))
 
+    @property
+    def oxygen(self):
+        for (x, y), sc in self.map.items():
+            if sc == 2:
+                return (x,y)
+
+    @property
+    def number_of_cells(self):
+        return len([cell for cell, sc in self.map.items() if sc in (1,2)])
+
+    @property
+    def number_of_cells_visited(self):
+        return len([cell for cell, sc in self.visited.items() if sc == True])
+
+    def get_max_distance(self):
+        '''
+        get cell with maximum distance from O
+        ?
+        '''
+        src = self.oxygen
+        self.visited = defaultdict(unknown)
+        self.visited[src] = True
+        q = [(src, 0)]
+        dst = 0
+        while q:
+            (x, y), distance = q.pop(0)
+            print(self.showmap())
+            if distance > dst: dst = distance
+            if self.number_of_cells_visited == self.number_of_cells:
+                return dst
+
+            north = (x, y + 1)
+            south = (x, y - 1)
+            west = (x - 1, y)
+            east = (x + 1, y)
+            for cell in [north, south, west, east]:
+                if self.map[cell] in (1,2) and self.visited[cell] is not True:
+                    self.visited[cell] = True
+                    q.append((cell, distance + 1))
+
 if __name__ == '__main__':
     droid = Droid(input_day15.input_data)
     print(droid.calc_distance())
+    print(droid.get_max_distance())
