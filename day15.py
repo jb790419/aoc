@@ -26,10 +26,9 @@ class Droid:
         self.at_start = 0
         self.strings = {
                 0: '#',
-                1: '.',
+                1: ' ',
                 2: 'O',
                 3: ' ',
-                4: 'v'
                 }
 
         self.comp.process()
@@ -200,10 +199,6 @@ class Droid:
         return len([cell for cell, sc in self.visited.items() if sc == True])
 
     def get_max_distance(self):
-        '''
-        get cell with maximum distance from O
-        ?
-        '''
         src = self.oxygen
         self.visited = defaultdict(unknown)
         self.visited[src] = True
