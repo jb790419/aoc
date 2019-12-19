@@ -42,21 +42,39 @@ list for the next phase, if any.  '''
 
 def signal(instr, phase=0):
     initial_phase = [0,1,0,-1]
-    for p in range(phase):
-        current_phase = [initial_phase[i//p] for i in range(len(initial_phase)*p)]
-        print(current_phase[1:])
+    final = list(map(int, instr))
+    inp = []
+    inp.append(final)
+    pn = 1 
+    while pn <= phase:
+        pn += 1
+        inpl = inp.pop(0)
+        for p in range(1, phase + 1):
+            pl = []
+            for it in range(1, len(inpl) + 1):
+                current_phase = [initial_phase[i//it] for i in range(len(initial_phase)*it)]
+                c = current_phase*(len(inpl)//len(initial_phase))
+                d = c[1:]
+                d.append(c[0])
+                print(d)
+                f = int(str(sum([x*y for x, y in zip(inpl, d)]))[-1])
+                pl.append(f)
+            inp.append(pl)
+    return pl
+
+
 
     return None
 
 class TestSignal(unittest.TestCase):
     def test_phase1(self):
-        self.assertEqual(signal('12345678', phase=1), '48226158')
+        self.assertEqual(signal('12345678', phase=1), [4,8,2,2,6,1,5,8])
     def test_phase2(self):
-        self.assertEqual(signal('12345678', phase=2), '34040438')
+        self.assertEqual(signal('12345678', phase=2), [3,4,0,4,0,4,3,8])
     def test_phase3(self):
-        self.assertEqual(signal('12345678', phase=3), '03415518')
+        self.assertEqual(signal('12345678', phase=3), [0,3,4,1,5,5,1,8])
     def test_phase4(self):
-        self.assertEqual(signal('12345678', phase=4), '01029498')
+        self.assertEqual(signal('12345678', phase=4), [0,1,0,2,9,4,9,8])
 
     @skip('')
     def test_large1(self):
