@@ -1,4 +1,5 @@
 import unittest
+from unittest import skip
 '''
 --- Day 16: Flawed Frequency Transmission ---
 You're 3/4ths of the way through the gas giants. Not only do roundtrip signals
@@ -39,22 +40,33 @@ After using this process to calculate each element of the output list, the
 phase is complete, and the output list of this phase is used as the new input
 list for the next phase, if any.  '''
 
-def signal(instr, phase=1):
+def signal(instr, phase=0):
+    initial_phase = [0,1,0,-1]
+    for p in range(phase):
+        current_phase = [initial_phase[i//p] for i in range(len(initial_phase)*p)]
+        print(current_phase[1:])
+
     return None
 
 class TestSignal(unittest.TestCase):
-    def test_phase(self):
+    def test_phase1(self):
         self.assertEqual(signal('12345678', phase=1), '48226158')
+    def test_phase2(self):
         self.assertEqual(signal('12345678', phase=2), '34040438')
+    def test_phase3(self):
         self.assertEqual(signal('12345678', phase=3), '03415518')
+    def test_phase4(self):
         self.assertEqual(signal('12345678', phase=4), '01029498')
 
+    @skip('')
     def test_large1(self):
         self.assertEqual(signal('80871224585914546619083218645595', phase=100), '24176176')
 
+    @skip('')
     def test_large2(self):
         self.assertEqual(signal('19617804207202209144916044189917', phase=100), '73745418')
 
+    @skip('')
     def test_large3(self):
         self.assertEqual(signal('69317163492948606335995924319873', phase=100), '52432133')
 
