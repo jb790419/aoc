@@ -13,6 +13,7 @@ class Droid:
         self.comp.robot = self
         # {(x, y): sc, ...}
         self.map = defaultdict(unknown)
+        self.visited = defaultdict(unknown)
         self.map[(0,0)] = 1
         self.x = 0
         self.y = 0
@@ -45,6 +46,8 @@ class Droid:
                         line += 'S'
                     elif x == self.x and y == self.y:
                         line += 'X'
+                    elif self.visited[(x, y)] == True:
+                        line += '+'
                     else:
                         line += self.strings.get(self.map[(x, y)])
                 lines.append(line)
@@ -165,7 +168,25 @@ class Droid:
             self.new_y = self.y
         return self.input
 
+    def calc_distance(self):
+        src = (0,0)
+        self.visited[src] = True
+        q = [(src, 0)]
+        while q:
+            print(self.showmap())
+            (x, y), distance = q.pop(0)
+            if self.map[(x, y)] == 2:
+                return distance
+            # enqueue adjacent cells if is valid, has path and not visited yet
+            north = (x, y + 1)
+            south = (x, y - 1)
+            west = (x - 1, y)
+            east = (x + 1, y)
+            for cell in [north, south, west, east]:
+                if self.map[cell] in (1,2) and self.visited[cell] is not True:
+                    self.visited[cell] = True
+                    q.append((cell, distance + 1))
 
 if __name__ == '__main__':
     droid = Droid(input_day15.input_data)
-    print(droid.stepcount)
+    print(droid.calc_distance())
