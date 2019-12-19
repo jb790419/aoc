@@ -11,7 +11,6 @@ class Droid:
         self.comp = Intcode(intc)
         self.comp.max_outputs = 1
         self.comp.robot = self
-        # {(x, y): sc, ...}
         self.map = defaultdict(unknown)
         self.visited = defaultdict(unknown)
         self.map[(0,0)] = 1
@@ -22,11 +21,10 @@ class Droid:
         self.path = [1]
         self.new_x = 0
         self.new_y = 0
-        self.stepcount = 0
         self.at_start = 0
         self.strings = {
                 0: '#',
-                1: ' ',
+                1: '.',
                 2: 'O',
                 3: ' ',
                 }
@@ -46,7 +44,7 @@ class Droid:
                     elif x == self.x and y == self.y:
                         line += 'X'
                     elif self.visited[(x, y)] == True:
-                        line += '+'
+                        line += 'o'
                     else:
                         line += self.strings.get(self.map[(x, y)])
                 lines.append(line)
@@ -124,8 +122,6 @@ class Droid:
                 3: self.map[(self.x+1, self.y)],
                 4: self.map[(self.x-1, self.y)]
                 }
-
-        back = {1:2, 2:1, 3:4, 4:3}
 
         if dirs.get(self.left) == 3:
             return self.left
